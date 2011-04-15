@@ -107,7 +107,9 @@ def better_exchook(etype, value, tb):
 				line = line.strip()
 				print >>sys.stderr, '    line:', line
 				print >>sys.stderr, '    locals:'
+				alreadyPrintedLocals = set()
 				for token in grep_full_py_identifiers(parse_py_statement(line)):
+					if token in alreadyPrintedLocals: continue
 					print >>sys.stderr, '     ', token, "=",
 					tokenvalue = None
 					tokenvalue = _trySet(tokenvalue, lambda: "<local> " + repr(_resolveIdentifier(f.f_locals, token)))
@@ -115,6 +117,7 @@ def better_exchook(etype, value, tb):
 					tokenvalue = _trySet(tokenvalue, lambda: "<builtin> " + repr(_resolveIdentifier(f.f_builtins, token)))
 					tokenvalue = tokenvalue or "<not found>"
 					print >>sys.stderr, tokenvalue
+					alreadyPrintedLocals.add(token)
 			_tb = _tb.tb_next
 			n += 1
 
