@@ -57,7 +57,20 @@ def parse_py_statement(line):
 			curtoken += c
 	if state == 3: yield ("id", curtoken)
 	elif state == 6: yield ("comment", curtoken)
-	
+
+def grep_full_py_identifiers(tokens):
+	tokens = list(tokens)
+	i = 0
+	while i < len(tokens):
+		tokentype, token = tokens[i]
+		i += 1
+		if tokentype != "id": continue
+		while i+1 < len(tokens) and tokens[i] == ("op", ".") and tokens[i+1][0] == "id":
+			token += "." + tokens[i+1][1]
+			i += 2
+		yield token
+		
+
 def better_exchook(etype, value, tb):
 	print >>sys.stderr, "EXCEPTION"
 	print >>sys.stderr, 'Traceback (most recent call last):'
@@ -68,6 +81,16 @@ def better_exchook(etype, value, tb):
 			limit = sys.tracebacklimit
 		n = 0
 		_tb = tb
+		def _resolveIdentifier(namespace, id):
+			id = id.split(".")
+			obj = namespace[id[0]]
+			for part in id[1:]:
+				obj = getattr(obj, part)
+			return obj
+		def _trySet(old, func):
+			if old is not None: return old
+			try: return func()
+			except: return old
 		while _tb is not None and (limit is None or n < limit):
 			f = _tb.tb_frame
 			lineno = _tb.tb_lineno
@@ -81,13 +104,13 @@ def better_exchook(etype, value, tb):
 				line = line.strip()
 				print >>sys.stderr, '    line:', line
 				print >>sys.stderr, '    locals:'
-				for tokentype, token in parse_py_statement(line):
-					if tokentype != "id": continue
+				for token in grep_full_py_identifiers(parse_py_statement(line)):
 					print >>sys.stderr, '     ', token, "=",
-					tokenvalue = "<not found>"
-					if token in f.f_locals: tokenvalue = "<local> " + repr(f.f_locals[token])
-					elif token in f.f_globals: tokenvalue = "<global> " + repr(f.f_globals[token])
-					elif token in f.f_builtins: tokenvalue = "<builtin> " + repr(f.f_builtins[token])
+					tokenvalue = None
+					tokenvalue = _trySet(tokenvalue, lambda: "<local> " + repr(_resolveIdentifier(f.f_locals, token)))
+					tokenvalue = _trySet(tokenvalue, lambda: "<global> " + repr(_resolveIdentifier(f.f_globals, token)))
+					tokenvalue = _trySet(tokenvalue, lambda: "<builtin> " + repr(_resolveIdentifier(f.f_builtins, token)))
+					tokenvalue = tokenvalue or "<not found>"
 					print >>sys.stderr, tokenvalue
 			_tb = _tb.tb_next
 			n += 1
@@ -133,6 +156,6 @@ import codecs # utf8
 import os, os.path
 
 infilename = os.path.expanduser("~/Music/iTunes/iTunes Music Library.xml")
-infile = codecs.open(infilename, "r", "utf-8")
+infile = codecs.open(infilename + "x", "r", "utf-8")
 
-foo
+
