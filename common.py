@@ -68,9 +68,13 @@ def parse_xml(stream):
 
 plistPrimitiveTypes = {"integer": int, "string": unicode, "date": str}
 
-def parse_plist_content(xmlIter, prefix):
+def parse_plist_content(xmlIter, prefix, nodeExceptions = {}):
 	for node, nodeargs, data in xmlIter:
-		if node == "dict":
+		if node in nodeExceptions:
+			raise nodeExceptions[node]
+		elif node == "array":
+			for entry in parse_plist_dictContent(xmlIter, prefix): yield entry
+		elif node == "dict":
 			for entry in parse_plist_dictContent(xmlIter, prefix): yield entry
 		elif node in plistPrimitiveTypes:
 			for entry in parse_plist_primitiveContent(xmlIter, prefix, node): yield entry
@@ -89,10 +93,29 @@ def parse_plist_primitiveContent(xmlIter, prefix, contentType):
 		else:
 			print >>sys.stderr, "didnt expected node", repr(node), "in primitive content", repr(contentType), "in prefix", repr(prefix)
 		break
-		
+
+class PlistMarkerArrayBegin: pass
+class PlistMarkerArrayEnd: pass
+
+def parse_plist_arrayContent(xmlIter, prefix):
+	yield prefix, PlistMarkerArrayBegin
+	index = 0
+	while True:
+		try:
+			for entry in parse_plist_content(xmlIter, prefix + [index], {"/array": PlistMarkerArrayEnd()}):
+				yield entry
+		except PlistMarkerArrayEnd:
+			break
+		index += 1
+	yield prefix, PlistMarkerArrayEnd
+
+class PlistMarkerDictBegin: pass
+class PlistMarkerDictEnd: pass
+
 # dict in plist is a list of key/value pairs
 def parse_plist_dictContent(xmlIter, prefix):
 	lastkey = None
+	yield prefix, PlistMarkerDictBegin
 	for node, nodeargs, data in xmlIter:
 		if node == "key": pass
 		elif node == "/key":
@@ -104,11 +127,13 @@ def parse_plist_dictContent(xmlIter, prefix):
 		elif node == "/dict": break
 		else:
 			print >>sys.stderr, "didn't expected node", repr(node), "in dict content in prefix", repr(prefix)
-			
+	yield prefix, PlistMarkerDictEnd
+
 def parse_plist(xmlIter):
 	for node, nodeargs, data in xmlIter:
 		if node == "plist":
 			for entry in parse_plist_content(xmlIter, []): yield entry
 
 for entry in parse_plist(parse_xml(libraryXmlFile)):
-	print entry
+	#print entry
+	pass
