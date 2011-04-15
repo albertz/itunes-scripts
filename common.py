@@ -140,6 +140,20 @@ def parse_plist(xmlIter):
 		if node == "plist":
 			for entry in parse_plist_content(xmlIter, []): yield entry
 
-for entry in parse_plist(parse_xml(libraryXmlFile)):
-	#print entry
-	pass
+libraryPlistIter = parse_plist(parse_xml(libraryXmlFile))
+
+def songsIter(plistIter):
+	for prefix, value in plistIter:
+		if len(prefix) == 2 and prefix[0] == "Tracks" and value is PlistMarkerDictBegin:
+			song = {}
+			for prefix2, value2 in plistIter:
+				if prefix2 == prefix and value2 is PlistMarkerDictEnd: break
+				song[prefix2[2]] = value2
+			yield song
+
+if __name__ == "__main__":
+	#for entry in libraryPlistIter:
+	#	print entry
+
+	for song in songsIter(libraryPlistIter):
+		print song
