@@ -62,7 +62,7 @@ def parse_py_statement(line):
 def grep_full_py_identifiers(tokens):
 	tokens = list(tokens)
 	i = 0
-	pykeywords = set(["for","in","while","print","continue","break","if","else","elif","yield","def","class","try","except","import","pass"])
+	pykeywords = set(["for","in","while","print","continue","break","if","else","elif","yield","def","class","try","except","import","pass","lambda"])
 	while i < len(tokens):
 		tokentype, token = tokens[i]
 		i += 1
