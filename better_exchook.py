@@ -160,6 +160,8 @@ def better_exchook(etype, value, tb):
 
 if __name__ == "__main__":
 	# some examples
+	# this code produces this output: https://gist.github.com/922622
+	
 	try:
 		x = {1:2, "a":"b"}
 		def f():
@@ -179,4 +181,3 @@ if __name__ == "__main__":
 	sys.excepthook = better_exchook
 	# and fail
 	finalfail(sys)
-
