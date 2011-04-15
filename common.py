@@ -65,15 +65,21 @@ def parse_xml(stream):
 			nodeargs = []
 			data = ""
 
+import base64
+def _plistDataConv(data):
+	data = data.replace(" ", "")
+	data = data.replace("\t", "")
+	data = data.replace("\n", "")
+	return base64.b64decode(data)
 
-plistPrimitiveTypes = {"integer": int, "string": unicode, "date": str}
+plistPrimitiveTypes = {"integer": int, "real": float, "string": unicode, "date": str, "data": _plistDataConv}
 
 def parse_plist_content(xmlIter, prefix, nodeExceptions = {}):
 	for node, nodeargs, data in xmlIter:
 		if node in nodeExceptions:
 			raise nodeExceptions[node]
 		elif node == "array":
-			for entry in parse_plist_dictContent(xmlIter, prefix): yield entry
+			for entry in parse_plist_arrayContent(xmlIter, prefix): yield entry
 		elif node == "dict":
 			for entry in parse_plist_dictContent(xmlIter, prefix): yield entry
 		elif node in plistPrimitiveTypes:
