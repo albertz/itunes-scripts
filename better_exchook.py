@@ -62,6 +62,7 @@ def parse_py_statement(line):
 def grep_full_py_identifiers(tokens):
 	tokens = list(tokens)
 	i = 0
+	pykeywords = set(["for","in","while","print","continue","break","if","else","elif","yield","def","class","try","except","import","pass"])
 	while i < len(tokens):
 		tokentype, token = tokens[i]
 		i += 1
@@ -69,7 +70,8 @@ def grep_full_py_identifiers(tokens):
 		while i+1 < len(tokens) and tokens[i] == ("op", ".") and tokens[i+1][0] == "id":
 			token += "." + tokens[i+1][1]
 			i += 2
-		yield token
+		if token not in pykeywords:
+			yield token
 
 
 def better_exchook(etype, value, tb):
