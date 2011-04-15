@@ -70,8 +70,10 @@ def grep_full_py_identifiers(tokens):
 		while i+1 < len(tokens) and tokens[i] == ("op", ".") and tokens[i+1][0] == "id":
 			token += "." + tokens[i+1][1]
 			i += 2
-		if token not in pykeywords:
-			yield token
+		if token == "": continue
+		if token in pykeywords: continue
+		if token[0] in ".0123456789": continue
+		yield token
 
 
 def better_exchook(etype, value, tb):
