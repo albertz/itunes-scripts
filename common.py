@@ -25,8 +25,7 @@ def parse_xml(stream):
 
 		oldstate = state
 		if state == 0:
-			if c in spaces: pass
-			elif c == "<": state = 1
+			if c == "<": state = 1
 			else: data += c
 		elif state == 1: # in node
 			if c in spaces:
