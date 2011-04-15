@@ -13,5 +13,5 @@ for song in common.librarySongsIter:
 	fn = song["Location"]
 	fn = urllib.unquote(fn)
 	fn = re.sub("^file://(localhost)?", "", fn)
-	print repr(fn), rating
+	print rating, repr(fn)
 
