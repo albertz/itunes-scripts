@@ -67,7 +67,7 @@ def parse_xml(stream):
 			data = ""
 
 
-plistPrimitiveTypes = {"integer": int, "string": str, "date": str}
+plistPrimitiveTypes = {"integer": int, "string": unicode, "date": str}
 
 def parse_plist_content(xmlIter, prefix):
 	for node, nodeargs, data in xmlIter:
