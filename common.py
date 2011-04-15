@@ -72,7 +72,36 @@ def _plistDataConv(data):
 	data = data.replace("\n", "")
 	return base64.b64decode(data)
 
-plistPrimitiveTypes = {"integer": int, "real": float, "string": unicode, "date": str, "data": _plistDataConv}
+# code from here: http://wiki.python.org/moin/EscapingXml
+import xml.parsers.expat
+def xmlUnescape(s):
+	want_unicode = False
+	if isinstance(s, unicode):
+		s = s.encode("utf-8")
+		want_unicode = True
+
+	# the rest of this assumes that `s` is UTF-8
+	list = []
+
+	# create and initialize a parser object
+	p = xml.parsers.expat.ParserCreate("utf-8")
+	p.buffer_text = True
+	p.returns_unicode = want_unicode
+	p.CharacterDataHandler = list.append
+
+	# parse the data wrapped in a dummy element
+	# (needed so the "document" is well-formed)
+	p.Parse("<e>", 0)
+	p.Parse(s, 0)
+	p.Parse("</e>", 1)
+
+	# join the extracted strings and return
+	es = ""
+	if want_unicode:
+		es = u""
+	return es.join(list)
+
+plistPrimitiveTypes = {"integer": int, "real": float, "string": xmlUnescape, "date": str, "data": _plistDataConv}
 
 def parse_plist_content(xmlIter, prefix, nodeExceptions = {}):
 	for node, nodeargs, data in xmlIter:
@@ -149,7 +178,10 @@ def songsIter(plistIter):
 			for prefix2, value2 in plistIter:
 				if prefix2 == prefix and value2 is PlistMarkerDictEnd: break
 				song[prefix2[2]] = value2
+			if "Rating" not in song: song["Rating"] = None
 			yield song
+
+librarySongsIter = songsIter(libraryPlistIter)
 
 if __name__ == "__main__":
 	#for entry in libraryPlistIter:
