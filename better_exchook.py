@@ -3,6 +3,11 @@
 # code under GPLv3+
 # 2011-04-15
 
+# This is a simple replacement for the standard Python exception handler (sys.excepthook).
+# In addition to what the standard handler does, it also prints all referenced variables
+# (no matter if local, global or builtin) of the code line of each stack frame.
+# See below for some examples and some example output.
+
 import sys
 
 def parse_py_statement(line):
