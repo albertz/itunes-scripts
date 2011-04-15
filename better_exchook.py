@@ -158,3 +158,25 @@ def better_exchook(etype, value, tb):
 		ipshell = IPShellEmbed()
 		ipshell()
 
+if __name__ == "__main__":
+	# some examples
+	try:
+		x = {1:2, "a":"b"}
+		def f():
+			y = "foo"
+			x, 42, sys.stdin.__class__, sys.exc_info, y, z
+		f()
+	except:
+		better_exchook(*sys.exc_info())
+
+	try:
+		f = lambda x: None
+		f(x, y)
+	except:
+		better_exchook(*sys.exc_info())
+
+	# use this to overwrite the global exception handler
+	sys.excepthook = better_exchook
+	# and fail
+	finalfail(sys)
+
