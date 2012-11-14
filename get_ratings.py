@@ -1,7 +1,5 @@
 #!/usr/bin/python
-
 # by Albert Zeyer, www.az2000.de
-# code under GPLv3+
 
 import common
 import urllib
